@@ -1,0 +1,27 @@
+{
+  "name": "bug-tracker",
+  "version": "1.0.0",
+  "description": "An application to track and record bugs and activities during a collaborative project.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "devStart": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamCassidy/bug-tracker.git"
+  },
+  "author": "Adam Cassidy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdamCassidy/bug-tracker/issues"
+  },
+  "homepage": "https://github.com/AdamCassidy/bug-tracker#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.6"
+  }
+}
