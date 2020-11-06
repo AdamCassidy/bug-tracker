@@ -18,7 +18,7 @@ route
   .put("/user", async (req, res) => {
     try {
     const {_id, name, password, role} = req.body
-    const user = await userModel.findByIdAndUpdate(_id);
+      const user = await userModel.findByIdAndUpdate(_id, req.body);
     if (!user) return res.status(400).send("User doesn't exist");
     res.send("Updated user");
     } catch (err) {
@@ -40,7 +40,6 @@ route
   })
   .get("/", async (req, res) => {
     try {
-
     const users = await userModel.find()
       if (!users) return res.status(400).send("No users");
       res.send(users)
