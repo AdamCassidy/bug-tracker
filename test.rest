@@ -1,0 +1,8 @@
+POST "https://localhost:3000/auth/user"
+Content-Type: application/json
+
+{
+    "name": "Fred",
+    "password": "zxcnivv408440m,nl;3241d54a",
+    "role": "admin"
+}
