@@ -61,14 +61,14 @@ router.post("/", async (req, res) => {
     if (!isMatch) return res.status(400).send("Incorrect name or password");
     const accessToken = await generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user, req.ip);
-    res.cookie("accessToken", accessToken, {
+    /* res.cookie("accessToken", accessToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 15,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
+    }); */
     res.json({ accessToken: accessToken, refreshToken: refreshToken });
   } catch (err) {
     res.status(500).send(err);
@@ -107,8 +107,8 @@ router.delete("/", async (req, res) => {
   try {
     const token = await refreshTokenModel.findOne({ token: req.body.token });
     if (!token) return res.status(401);
-    const deleted = await refreshTokenModel.delete(token);
-    if (!deleted) res.status(500).send("Can't delete token and logout");
+    const deleted = await refreshTokenModel.findByIdAndDelete(token._id);
+    if (!deleted) res.status(500).send("Can't delete refresh token");
     res.sendStatus(204);
   } catch (err) {
     res.status(500).send(err);
