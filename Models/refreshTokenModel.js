@@ -1,12 +1,14 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const schema = mongoose.Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User" },
-  token: String,
-  createdAt: { type: Date, default: Date.now() },
-  expires: Date,
-});
+const schema = mongoose.Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    token: String,
+    expires: Date,
+  },
+  { timestamps: true }
+);
 
 schema.virtual("isExpired").get(function () {
   return Date.now() >= this.expires;
