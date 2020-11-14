@@ -17,7 +17,7 @@ const schema = mongoose.Schema({
   password: {
     type: String,
     required: [true, "Please enter a password"],
-    minlength: [6, "Please enter at least 6 characters"],
+    minlength: [8, "Please enter at least 8 characters"],
   },
   role: {
     type: String,

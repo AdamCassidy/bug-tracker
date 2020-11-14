@@ -7,7 +7,7 @@ const schema = mongoose.Schema(
     project: { type: Schema.Types.ObjectId, ref: "Project" },
     subject: {
       type: String,
-      required: [true, "Please enter a subject (e.g. 'issue' or 'request')"],
+      required: [true, "Please enter a subject"],
     },
     text: {
       type: String,
@@ -15,10 +15,7 @@ const schema = mongoose.Schema(
     },
     priority: {
       type: String,
-      required: [
-        true,
-        "Please enter a priority (e.g. 'low','medium', or 'high'",
-      ],
+      required: [true, "Please enter a priority"],
     },
     finishedAt: Date,
   },

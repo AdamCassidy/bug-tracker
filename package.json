@@ -4,7 +4,9 @@
   "description": "An application to track and record bugs and activities during a collaborative project.",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "devDebug": "nodemon --inspect index.js"
   },
   "repository": {
     "type": "git",

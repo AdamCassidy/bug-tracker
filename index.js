@@ -5,6 +5,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const authRoutes = require("./Routes/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,14 +24,16 @@ db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to database"));
 
-app.use("/auth", require("./Routes/auth.js"));
-
+app.get("/home", (req, res) => {
+  res.render("home.vue");
+});
 app.get("/login", (req, res) => {
   res.render("login.vue");
 });
 app.get("/signup", (req, res) => {
   res.render("signup.vue");
 });
+app.use(authRoutes);
 
 app.listen(PORT, () => {
   console.log("Server started on port: " + PORT);
