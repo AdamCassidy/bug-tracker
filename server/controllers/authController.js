@@ -2,14 +2,14 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-const userModel = require("../Models/userModel");
-const refreshTokenModel = require("../Models/refreshTokenModel");
+const userModel = require("../models/userModel");
+const refreshTokenModel = require("../models/refreshTokenModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 var ObjectId = require("mongoose").Types.ObjectId;
 
-module.exports.postSignup = async (req, res) => {
+module.exports.createUser = async (req, res) => {
   try {
     const { email } = req.body;
     const prevUser = await userModel.findOne({ email });
@@ -32,14 +32,16 @@ module.exports.postSignup = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
-module.exports.getSignup = async (req, res) => {
+
+module.exports.readSignup = async (req, res) => {
   try {
     res.render("signup");
   } catch (err) {
     res.status(500).send(err);
   }
 };
-module.exports.updateSignup = async (req, res) => {
+
+module.exports.updateUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,7 +62,7 @@ module.exports.updateSignup = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
-module.exports.deleteSignup = async (req, res) => {
+module.exports.deleteUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
     const user = await userModel.findByIdAndDelete(new ObjectId(_id));
@@ -71,8 +73,7 @@ module.exports.deleteSignup = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
-// Log in
-module.exports.postLogin = async (req, res) => {
+module.exports.login = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
     const user = await userModel.findById(new ObjectId(_id));
@@ -94,8 +95,14 @@ module.exports.postLogin = async (req, res) => {
     res.status(500).send(err);
   }
 };
-// Log out
-module.exports.deleteLogin = async (req, res) => {
+module.exports.readLogin = async (req, res) => {
+  try {
+    res.render("login");
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+module.exports.logout = async (req, res) => {
   try {
     const token = await refreshTokenModel.findOne({ token: req.body.token });
     if (!token) return res.status(401);
@@ -107,7 +114,7 @@ module.exports.deleteLogin = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
-module.exports.postToken = async (req, res) => {
+module.exports.getNewAccessToken = async (req, res) => {
   try {
     const token = req.body.token;
     if (token === null) return res.sendStatus(401);

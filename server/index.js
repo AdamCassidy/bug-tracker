@@ -4,15 +4,17 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const authRoutes = require("./Routes/auth");
+const authRoutes = require("./routes/auth");
+const { getUser } = require("./middleware/authMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.set("view-engine", "vue");
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use(morgan("combine"));
 app.use(cookieParser());
 
 mongoose.connect(process.env.DB_URL, {
@@ -24,6 +26,7 @@ db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to database"));
 
+app.get("*", getUser);
 app.get("/home", (req, res) => {
   res.render("home.vue");
 });
