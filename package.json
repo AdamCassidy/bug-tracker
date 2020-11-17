@@ -4,8 +4,8 @@
   "description": "An application to track and record bugs and activities during a collaborative project.",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon server/index.js --ignore 'client/'",
-    "serverDebug": "nodemon --inspect server/index.js --ifnore 'client/'",
+    "serve": "nodemon server/index.js --ignore 'client/'",
+    "serveDebug": "nodemon --inspect server/index.js --ignore 'client/'",
     "client": "npm run serve --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "devDebug": "concurrently \"npm run serverDebug\" \"npm run client\""

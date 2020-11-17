@@ -4,22 +4,18 @@ const { authenticateToken } = require("../middleware/authMiddleware");
 
 const {
   createUser,
-  readSignup,
   updateUser,
   deleteUser,
   login,
-  readLogin,
   logout,
-  getNewAccessToken,
+  getNewTokens,
 } = authController;
 
 router.post("/signup", createUser);
-router.get("/signup", readSignup);
 router.put("/signup", authenticateToken, updateUser);
 router.delete("/signup", authenticateToken, deleteUser);
 router.post("/login", login);
-router.get("/login", readLogin);
 router.delete("/login", logout);
-router.post("/token", getNewAccessToken);
+router.post("/tokens", getNewTokens);
 
 module.exports = router;

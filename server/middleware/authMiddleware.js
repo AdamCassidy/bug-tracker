@@ -19,7 +19,7 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-const getUser = (req, res, next) => {
+const authenticateAndGetUser = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (typeof authHeader !== undefined) {
     // The header format is "Bearer <token>".
@@ -27,10 +27,11 @@ const getUser = (req, res, next) => {
     if (token === null) return res.sendStatus(401);
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
       if (err) {
-        req.locals.user = null;
+        res.locals.user = null;
         return res.sendStatus(403);
       }
-      req.locals.user = user;
+      req.user = user;
+      res.locals.user = user;
       next();
     });
   } else {
@@ -38,4 +39,4 @@ const getUser = (req, res, next) => {
   }
 };
 
-module.exports = { authenticateToken, getUser };
+module.exports = { authenticateToken, authenticateAndGetUser };
