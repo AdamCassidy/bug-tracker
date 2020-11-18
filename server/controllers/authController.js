@@ -30,7 +30,7 @@ function generateAccessToken(user) {
 
 async function generateRefreshToken(user) {
   const tempRefreshToken = {
-    user: user.id,
+    user: user._id,
     token: jwt.sign({ user }, process.env.REFRESH_TOKEN_SECRET),
     createdAt: Date.now(),
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
@@ -73,22 +73,38 @@ module.exports.createUser = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
-
+module.exports.readUsers = async (req, res) => {
+  try {
+    if (req.user.user.role !== "admin")
+      return res.status(403).send("Must be an admin");
+    const users = await userModel.find();
+    if (!users) return res.status(500).send("Can't read users");
+    res.json(users);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
 module.exports.updateUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
+    if (req.user.user._id !== _id) return res.sendStatus(403);
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await userModel.findByIdAndUpdate(
-      new ObjectId(_id),
+      new ObjectId(req.user.user._id),
       {
         name,
         email,
         password: hashedPassword,
         role,
       },
-      { useFindAndModify: false }
+      {
+        useFindAndModify: false,
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
     );
-    if (!user || user === {}) return res.status(400).send("User doesn't exist");
+    if (!user) return res.status(500).send("Can't update or create user");
     res.send("Updated user");
   } catch (err) {
     const errors = handleErrors(err);
@@ -98,6 +114,7 @@ module.exports.updateUser = async (req, res) => {
 module.exports.deleteUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
+    if (req.user.user._id !== _id) return res.sendStatus(403);
     const user = await userModel.findByIdAndDelete(new ObjectId(_id));
     if (!user) return res.status(400).send("User doesn't exist");
     res.send("Deleted user");
@@ -142,7 +159,7 @@ module.exports.logout = async (req, res) => {
   }
 };
 
-module.exports.getNewTokens = async (req, res) => {
+module.exports.generateNewTokens = async (req, res) => {
   try {
     const token = req.body.token;
     if (token === null) return res.sendStatus(401);
