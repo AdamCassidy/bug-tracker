@@ -5,38 +5,32 @@ const jwt = require("jsonwebtoken");
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  if (typeof authHeader !== undefined) {
-    // The header format is "Bearer <token>".
-    const token = authHeader.split(" ")[1];
-    if (token === null) return res.sendStatus(401);
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-    });
-  } else {
-    return res.sendStatus(403);
-  }
+  if (!authHeader) return res.sendStatus(403);
+  // The header format is "Bearer <token>".
+  const token = authHeader.split(" ")[1];
+  if (token === null) return res.sendStatus(401);
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
 };
 
 const authenticateAndGetUser = (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  if (typeof authHeader !== undefined) {
-    // The header format is "Bearer <token>".
-    const token = authHeader.split(" ")[1];
-    if (token === null) return res.sendStatus(401);
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-      if (err) {
-        res.locals.user = null;
-        return res.sendStatus(403);
-      }
-      req.user = user;
-      res.locals.user = user;
-      next();
-    });
-  } else {
-    return res.sendStatus(403);
-  }
+  if (!authHeader) return res.sendStatus(403);
+  // The header format is "Bearer <token>".
+  const token = authHeader.split(" ")[1];
+  if (token === null) return res.sendStatus(401);
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      res.locals.user = null;
+      return res.sendStatus(403);
+    }
+    req.user = user;
+    res.locals.user = user;
+    next();
+  });
 };
 
 module.exports = { authenticateToken, authenticateAndGetUser };

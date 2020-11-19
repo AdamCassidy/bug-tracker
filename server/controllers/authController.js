@@ -64,9 +64,9 @@ module.exports.createUser = async (req, res) => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     }); */
     res.json({
-      user: user,
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+      user,
+      accessToken,
+      refreshToken,
     });
   } catch (err) {
     const errors = handleErrors(err);
