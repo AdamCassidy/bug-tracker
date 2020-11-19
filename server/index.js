@@ -7,6 +7,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
+const projectsRoutes = require("./routes/projects");
 const {
   authenticateAndGetUser,
   authenticateToken,
@@ -41,6 +42,7 @@ app.put("*", authenticateToken);
 app.delete("*", authenticateToken);
 
 app.use("/auth", authRoutes);
+app.use("/projects", projectsRoutes);
 
 app.listen(PORT, () => {
   console.log("Server started on port: " + PORT);

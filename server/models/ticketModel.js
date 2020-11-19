@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const schema = mongoose.Schema(
+const schema = Schema(
   {
-    creator: { type: Schema.Types.ObjectId, ref: "User" },
+    creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
     assignedUser: { type: Schema.Types.ObjectId, ref: "User" },
     project: { type: Schema.Types.ObjectId, ref: "Project" },
     subject: {
