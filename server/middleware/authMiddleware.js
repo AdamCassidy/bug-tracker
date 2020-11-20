@@ -11,7 +11,13 @@ const authenticateToken = (req, res, next) => {
   if (token === null) return res.sendStatus(401);
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
-    req.user = user;
+    req.user = {
+      _id: user.user._id,
+      name: user.user.name,
+      email: user.user.email,
+      password: user.user.password,
+      role: user.user.role,
+    };
     next();
   });
 };
@@ -27,7 +33,13 @@ const authenticateAndGetUser = (req, res, next) => {
       res.locals.user = null;
       return res.sendStatus(403);
     }
-    req.user = user;
+    req.user = {
+      _id: user.user._id,
+      name: user.user.name,
+      email: user.user.email,
+      password: user.user.password,
+      role: user.user.role,
+    };
     res.locals.user = user;
     next();
   });

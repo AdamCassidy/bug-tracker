@@ -75,7 +75,7 @@ module.exports.createUser = async (req, res) => {
 };
 module.exports.readUsers = async (req, res) => {
   try {
-    if (req.user.user.role !== "admin")
+    if (req.user.role !== "admin")
       return res.status(403).send("Must be an admin");
     const users = await userModel.find();
     if (!users) return res.status(500).send("Can't read users");
@@ -87,10 +87,11 @@ module.exports.readUsers = async (req, res) => {
 module.exports.updateUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
-    if (req.user.user._id !== _id) return res.sendStatus(403);
+    const id = new ObjectId(req.user._id);
+    if (id) return res.sendStatus(403);
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await userModel.findByIdAndUpdate(
-      new ObjectId(req.user.user._id),
+      id,
       {
         name,
         email,
@@ -99,6 +100,7 @@ module.exports.updateUser = async (req, res) => {
       },
       {
         useFindAndModify: false,
+        // Create if not in database.
         upsert: true,
         new: true,
         setDefaultsOnInsert: true,
@@ -114,8 +116,9 @@ module.exports.updateUser = async (req, res) => {
 module.exports.deleteUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
-    if (req.user.user._id !== _id) return res.sendStatus(403);
-    const user = await userModel.findByIdAndDelete(new ObjectId(_id));
+    const id = new ObjectId(req.user._id);
+    if (id !== _id) return res.sendStatus(403);
+    const user = await userModel.findByIdAndDelete(_id);
     if (!user) return res.status(400).send("User doesn't exist");
     res.send("Deleted user");
   } catch (err) {
