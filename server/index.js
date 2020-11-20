@@ -8,6 +8,7 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const projectsRoutes = require("./routes/projects");
+const ticketsRoutes = require("./routes/tickets");
 const {
   authenticateAndGetUser,
   authenticateToken,
@@ -43,6 +44,7 @@ app.delete("*", authenticateToken);
 
 app.use("/auth", authRoutes);
 app.use("/projects", projectsRoutes);
+app.use("/tickets", ticketsRoutes);
 
 app.listen(PORT, () => {
   console.log("Server started on port: " + PORT);

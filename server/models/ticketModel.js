@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const schema = Schema(
   {
     creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    assignedUser: { type: Schema.Types.ObjectId, ref: "User" },
+    assignedUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     project: { type: Schema.Types.ObjectId, ref: "Project" },
     subject: {
       type: String,
