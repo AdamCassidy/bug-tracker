@@ -4,8 +4,6 @@ if (process.env.NODE_ENV !== "production") {
 
 const projectModel = require("../models/projectModel");
 
-var ObjectId = require("mongoose").Types.ObjectId;
-
 function handleErrors(err) {
   let errors = {};
   console.log(err.message, err.code);
