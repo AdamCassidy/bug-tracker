@@ -1,13 +1,16 @@
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-
 const userModel = require("../models/userModel");
-const refreshTokenModel = require("../models/refreshTokenModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const ObjectId = require("mongoose").Types.ObjectId;
+const redis = require("redis");
+let redisClient;
 
-var ObjectId = require("mongoose").Types.ObjectId;
+module.exports.setClient = (inClient) => {
+  redisClient = inClient;
+};
 
 function handleErrors(err) {
   let errors = {};
@@ -28,18 +31,19 @@ function generateAccessToken(user) {
   });
 }
 
-async function generateRefreshToken(user) {
-  const tempRefreshToken = {
-    user: user._id,
-    token: jwt.sign({ user }, process.env.REFRESH_TOKEN_SECRET),
-    createdAt: Date.now(),
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-  };
+function generateRefreshToken(user) {
   try {
-    const refreshToken = await refreshTokenModel.create(tempRefreshToken);
-    if (!refreshToken)
-      return res.status(500).send("Not creating refresh token");
-    return refreshToken.token;
+    const token = jwt.sign({ user }, process.env.REFRESH_TOKEN_SECRET);
+    const expires = 60 * 60 * 24 * 7;
+    if (!user._id) throw new Error("User id is null or undefined.");
+    const setClient = redisClient.setex(
+      user._id.toString(),
+      expires,
+      token,
+      redis.print
+    );
+    if (!setClient) return res.status(500).send(err);
+    return token;
   } catch (err) {
     const errors = handleErrors(err);
     res.status(500).json({ errors });
@@ -55,35 +59,38 @@ module.exports.createUser = async (req, res) => {
     if (!user) return res.status(400).send("Can't create user");
     const accessToken = await generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
-    /* res.cookie("accessToken", accessToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 15,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-    }); */
+    });
     res.json({
       user,
-      accessToken,
-      refreshToken,
+      /* accessToken,
+      refreshToken, */
     });
   } catch (err) {
     const errors = handleErrors(err);
     res.status(500).json({ errors });
   }
 };
+
 module.exports.readUsers = async (req, res) => {
   try {
     if (req.user.role !== "admin")
       return res.status(403).send("Must be an admin");
     const users = await userModel.find();
     if (!users) return res.status(500).send("Can't read users");
-    res.json(users);
+    res.json({ users, user: res.locals.user });
   } catch (err) {
-    res.status(500).send(err);
+    const errors = handleErrors(err);
+    res.status(500).json({ errors });
   }
 };
+
 module.exports.updateUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
@@ -113,6 +120,7 @@ module.exports.updateUser = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
+
 module.exports.deleteUser = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
@@ -126,6 +134,7 @@ module.exports.deleteUser = async (req, res) => {
     res.status(500).json({ errors });
   }
 };
+
 module.exports.login = async (req, res) => {
   try {
     const { _id, name, email, password, role } = req.body;
@@ -133,19 +142,21 @@ module.exports.login = async (req, res) => {
     if (!user) return res.status(400).send("User doesn't exist");
     const isMatch = await bcrypt.compare(req.body.password, user.password);
     if (!isMatch) return res.status(400).send("Incorrect name or password");
-    const accessToken = await generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user);
-    /* res.cookie("accessToken", accessToken, {
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 15,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-    }); */
-    res.json({ accessToken: accessToken, refreshToken: refreshToken });
+    });
+    res.send(); /*
+    res.json({ accessToken: accessToken, refreshToken: refreshToken }); */
   } catch (err) {
-    res.status(500).send(err);
+    const errors = handleErrors(err);
+    res.status(500).json({ errors });
   }
 };
 
@@ -164,30 +175,21 @@ module.exports.logout = async (req, res) => {
 
 module.exports.generateNewTokens = async (req, res) => {
   try {
-    const token = req.body.token;
-    if (token === null) return res.sendStatus(401);
-    const refreshToken = await refreshTokenModel.findOne({ token });
-    if (!refreshToken || refreshToken.isExpired) return res.sendStatus(403);
-    jwt.verify(
-      refreshToken.token,
-      process.env.REFRESH_TOKEN_SECRET,
-      async (err, user) => {
-        try {
-          if (err) return res.sendStatus(403);
-          await refreshTokenModel.findByIdAndDelete(
-            new ObjectId(refreshToken._id)
-          );
-          const accessToken = generateAccessToken(user);
-          const newRefreshToken = await generateRefreshToken(user);
-          if (!newRefreshToken)
-            return res.sendStatus(500).send("Can't create new refresh token.");
-          res.status(200).send({ accessToken, refreshToken: newRefreshToken });
-        } catch (err) {
-          const errors = handleErrors(err);
-          res.status(500).json({ errors });
-        }
+    const refreshToken = req.refreshToken;
+    if (refreshToken === null) return res.sendStatus(401);
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+      try {
+        if (err) return res.sendStatus(403);
+        const accessToken = generateAccessToken(user.user);
+        const newRefreshToken = generateRefreshToken(user.user);
+        if (!newRefreshToken)
+          return res.sendStatus(500).send("Can't create new refresh token.");
+        res.status(200).send({ accessToken, refreshToken: newRefreshToken });
+      } catch (err) {
+        const errors = handleErrors(err);
+        res.status(500).json({ errors });
       }
-    );
+    });
   } catch (err) {
     const errors = handleErrors(err);
     res.status(500).json({ errors });

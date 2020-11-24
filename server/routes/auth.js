@@ -11,12 +11,14 @@ const {
   generateNewTokens,
 } = authController;
 
+const { authenticateRefreshToken } = require("../middleware/authMiddleware");
+
 router.post("/signup", createUser);
 router.get("/signup", readUsers);
 router.put("/signup", updateUser);
 router.delete("/signup", deleteUser);
 router.post("/login", login);
 router.delete("/login", logout);
-router.post("/tokens", generateNewTokens);
+router.post("/tokens", authenticateRefreshToken, generateNewTokens);
 
 module.exports = router;
